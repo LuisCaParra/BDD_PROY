@@ -1,0 +1,311 @@
+http://localhost:3000/api/customers/
+
+{
+	"customerId": 3,
+	"customerName": "Pepito",
+	"customerPhone": 6141106401, 
+	"customerEmail": "a310831@uach.mx",
+	"otherCustomerDetails": "está un mas guapo" 
+}
+
+{
+	"customerId": 1,
+	"customerName": "Giovanny",
+	"customerPhone": 6141106401, 
+	"customerEmail": "a310831@uach.mx",
+	"otherCustomerDetails": "guapo", 
+    "addressId": 67789,
+    "line1NumericBuilding": 45667,
+    "line2NumericStreet": 678998,
+    "line3AreaLocality": "xxx",
+    "city": "yyy",
+    "zipPostcode": 12345,
+    "stateProvinceCountry": "zzz",
+    "isoCountryCode": 9090,
+    "otherAddressDetails": " "
+}
+
+
+
+
+
+
+http://localhost:3000/api/suppliers/
+
+{
+    "supplierId": 1,
+    "supplierName": Julieta,
+    "otherSupplierDetails": "proveedor de leche"
+}
+
+http://localhost:3000/api/customer_orders/
+
+{  
+    "orderId": 456,
+    "customerPaymentMethodId": 1,
+    "orderStatusCode": "",
+    "dateOrderPlaced": "01-27-94",
+    "dateOrderPaid": "02-30-96",
+    "derOrderPrice": 12000,
+    "otherOrderDetails": "nueva orden pedida",
+    "customerId": 3
+}
+
+http://localhost:3000/api/addresses/
+
+{
+    "addressId": 67789,
+    "line1NumericBuilding": 45667,
+    "line2NumericStreet": 678998,
+    "line3AreaLocality": "xxx",
+    "city": "yyy",
+    "zipPostcode": 12345,
+    "stateProvinceCountry": "zzz",
+    "isoCountryCode": 9090,
+    "otherAddressDetails": " "
+}
+
+
+create table addresses
+(
+    address_id           numeric not null ,
+    line_1_numeric_building numeric null ,
+    line_2_numeric_street numeric null ,
+    line_3_area_locality varchar(60) null ,
+    city                 varchar(60) null ,
+    zip_postcode         numeric null ,
+    state_province_country varchar(60) null ,
+    iso_country_code     numeric null ,
+    other_address_details varchar(60) null 
+);
+
+
+{
+	"customerId": 5356542534,
+	"customerName": "pablito",
+	"customerPhone": 6141106401, 
+	"customerEmail": "a310831@uach.mx",
+	"otherCustomerDetails": "guapo",
+    "addressId": 123143423,
+    "line1NumericBuilding": 45667,
+    "line2NumericStreet": 678998,
+    "line3AreaLocality": "xxx",
+    "city": "yyy",
+    "zipPostcode": 12345,
+    "stateProvinceCountry": "zzz",
+    "isoCountryCode": 9090,
+    "otherAddressDetails": " "
+}
+
+
+
+---------------------------------------------------------------------------------------------------------------------------
+select *, customer_name from customer_orders join customers using(customer_id) 
+
+
+
+select *, customer_name from customer_orders
+where customer_name = (
+    select customer_name from customers
+    where customer_id = ?
+) 
+
+
+
+/**
+ * INSERT a customer
+ */
+router.post('/', (req, res) =>
+{
+    let {
+        customerId,
+        customerName,
+        customerPhone,
+        customerEmail,
+        otherCustomerDetails
+    } = req.body;
+
+    let fields = 
+    [
+        customerId,
+        String(customerName),
+        customerPhone,
+        String(customerEmail),
+        String(otherCustomerDetails)
+    ]
+
+    console.log(fields);
+
+    let insertQuery = `
+    insert into customers (customer_id,
+                           customer_name,
+                           customer_phone,
+                           customer_email,
+                           other_customer_details)
+    values (?, ?, ?, ?, ?);    
+    `;
+
+    mysqlConnection.query(insertQuery, fields, (err, rows) =>
+    {
+        if (!err) { res.json( {status: 'customer Saved'} ); } else { console.log(err); }
+    });
+});
+
+
+
+/**
+ * INSERT a customer with address
+ */
+router.post('/', (req, res) =>
+{
+    let {
+        customerId,
+        customerName,
+        customerPhone,
+        customerEmail,
+        otherCustomerDetails,
+        addressId,
+        line1NumericBuilding,
+        line2NumericStreet,
+        line3AreaLocality,
+        city,
+        zipPostcode,
+        stateProvinceCountry,
+        isoCountryCode,
+        otherAddressDetails        
+    } = req.body;
+
+    let fields
+    [
+        customerId,
+        customerName,
+        customerPhone,
+        customerEmail,
+        otherCustomerDetails,
+        addressId,
+        line1NumericBuilding,
+        line2NumericStreet,
+        line3AreaLocality,
+        city,
+        zipPostcode,
+        stateProvinceCountry,
+        isoCountryCode,
+        otherAddressDetails
+        //customerId,
+        //addressId        
+    ]
+
+    console.log(fields);
+
+    let insertQuery = `
+    insert into customers (customer_id,
+                           customer_name,
+                           customer_phone,
+                           customer_email,
+                           other_customer_details) values (?, ?, ?, ?, ?);    
+
+    insert into addresses (address_id,
+        line_1_numeric_building,
+        line_2_numeric_street,
+        line_3_area_locality,
+        city,
+        zip_postcode,
+        state_province_country,
+        iso_country_code,
+        other_address_details)
+    values (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+    `;
+
+    mysqlConnection.query(insertQuery, fields, (err, rows) =>
+    {
+        if (!err) { res.json( {status: 'customers, addresses and table beetwen both Saved'} ); } else { console.log(err); }
+    });
+});
+
+
+
+
+
+/**
+ * INSERT a customer with address
+ */
+router.post('/', (req, res) =>
+{
+    let {
+        customerId,
+        customerName,
+        customerPhone,
+        customerEmail,
+        otherCustomerDetails,
+        addressId,
+        line1NumericBuilding,
+        line2NumericStreet,
+        line3AreaLocality,
+        city,
+        zipPostcode,
+        stateProvinceCountry,
+        isoCountryCode,
+        otherAddressDetails        
+    } = req.body;
+
+    let customer =
+    [
+        customerId,
+        customerName,
+        customerPhone,
+        customerEmail,
+        otherCustomerDetails
+    ]
+
+    let address =
+    [
+        addressId,
+        line1NumericBuilding,
+        line2NumericStreet,
+        line3AreaLocality,
+        city,
+        zipPostcode,
+        stateProvinceCountry,
+        isoCountryCode,
+        otherAddressDetails
+    ]
+
+    let customerAddress =
+    [
+        customerId,
+        addressId
+    ]        
+
+    let insertCustomer = `
+    insert into customers (customer_id,
+                           customer_name,
+                           customer_phone,
+                           customer_email,
+                           other_customer_details)
+    values (?, ?, ?, ?, ?);    
+    `;
+
+    let insertAddress = `
+    insert into addresses (address_id,
+                           line_1_numeric_building,
+                           line_2_numeric_street,
+                           line_3_area_locality,
+                           city,
+                           zip_postcode,
+                           state_province_country,
+                           iso_country_code,
+                           other_address_details)
+    values (?, ?, ?, ?, ?, ?, ?, ?, ?);
+    `;
+
+    mysqlConnection.query(insertCustomer, customer, (err, rows) =>
+    {
+        if (!err) { res.json( {status: 'customer Saved'} ); } else { console.log(err); }
+    });
+
+    mysqlConnection.query(insertAddress, address, (err, rows) =>
+    {
+        if (!err) { res.json( {status: 'address Saved'} ); } else { console.log(err); }
+    });    
+});

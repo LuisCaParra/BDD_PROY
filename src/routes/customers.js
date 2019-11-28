@@ -1,107 +1,156 @@
 const express = require('express');
 const router = express.Router();
+const mysqlConnection  = require('../database.js');
 
-const mysqlConnection = require('../database.js');
+/**
+ * GET all customers
+ */
+router.get('/', (req, res) =>
+{
+    let getAllQuery = 'select * from customers';
 
-// GET all Customers
-router.get('/', (req, res) => {
-    mysqlConnection.query('SELECT * FROM Customers', (err, rows, fields) => {
-        if (!err) {
-            res.json(rows);
-        } else {
-            console.log(err);
-        }
+    mysqlConnection.query(getAllQuery, (err, rows) =>
+    {
+        if (!err) { res.json(rows); } else { console.log(err); }
     });
 });
 
-// GET A customer
-router.get('/:id', (req, res) => {
-    const {
-        id
-    } = req.params;
-    mysqlConnection.query('SELECT * FROM Customers WHERE customer_id = ?', [id], (err, rows, fields) => {
-        if (!err) {
-            res.json(rows[0]);
-        } else {
-            console.log(err);
-        }
+/**
+ * GET a single customers
+ */
+router.get('/:id', (req, res) =>
+{    
+    let {id} = req.params;
+    let getQuery = 'select * from customers where customer_id = ?';
+    
+    mysqlConnection.query(getQuery, [id], (err, rows) =>
+    {
+        if (!err) { res.json(rows[0]); } else { console.log(err); }
     });
 });
 
-// DELETE A Customer
-router.delete('/:id', (req, res) => {
-    const {
-        id
-    } = req.params;
-    mysqlConnection.query('DELETE FROM Customers WHERE customer_id = ?', [id], (err, rows, fields) => {
+/**
+ * INSERT a customer with address
+ */
+router.post('/', (req, res) =>
+{
+    let {
+        customerId,
+        customerName,
+        customerPhone,
+        customerEmail,
+        otherCustomerDetails,
+        addressId,
+        line1NumericBuilding,
+        line2NumericStreet,
+        line3AreaLocality,
+        city,
+        zipPostcode,
+        stateProvinceCountry,
+        isoCountryCode,
+        otherAddressDetails        
+    } = req.body;
+
+    let customer =
+    [
+        customerId,
+        customerName,
+        customerPhone,
+        customerEmail,
+        otherCustomerDetails,
+        addressId,
+        line1NumericBuilding,
+        line2NumericStreet,
+        line3AreaLocality,
+        city,
+        zipPostcode,
+        stateProvinceCountry,
+        isoCountryCode,
+        otherAddressDetails,
+        customerId,
+        addressId
+    ]
+      
+    let insert = `
+    insert into customers (customer_id,
+                           customer_name,
+                           customer_phone,
+                           customer_email,
+                           other_customer_details)
+    values (?, ?, ?, ?, ?);    
+
+    insert into addresses (address_id,
+        line_1_numeric_building,
+        line_2_numeric_street,
+        line_3_area_locality,
+        city,
+        zip_postcode,
+        state_province_country,
+        iso_country_code,
+        other_address_details)
+    values (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+    insert into customers_addresses (customer_id, address_id)
+    values(?, ?);
+    `;
+
+    mysqlConnection.query(insert, customer, (err, rows) =>
+    {
         if (!err) {
-            res.json({
-                status: 'Customer Deleted'
-            });
-        } else {
-            console.log(err);
-        }
+            res.json( {status: 'both Saved'} );
+        } else { console.log(err); }
     });
+
+    
 });
 
-// INSERT A Customer
-router.post('/', (req, res) => {
-    const {
+/**
+ * UPDATE a customer
+ */
+router.post('/update/:id', (req, res) =>
+{
+    let {
         customerId,
         customerName,
         customerPhone,
         customerEmail,
         otherCustomerDetails
     } = req.body;
-    console.log(customerId, customerName, customerPhone, customerEmail, otherCustomerDetails);
-    const query = `
-    SET @customer_id = ?;
-    SET @customer_name = ?;
-    SET @customer_phone = ?;
-    SET @customer_email = ?;
-    SET @other_customer_details = ?;
-    CALL customerAddOrEdit(@customer_id, @customer_name, @customer_phone,@customer_email,@other_customer_details);
-  `;
-    mysqlConnection.query(query, [customerId, customerName, customerPhone, customerEmail, otherCustomerDetails], (err, rows, fields) => {
-        if (!err) {
-            res.json({
-                status: 'Customer Saved'
-            });
-        } else {
-            console.log(err);
-        }
-    });
 
+    let fields = 
+    [
+        String(customerName),
+        customerPhone,
+        String(customerEmail),
+        String(otherCustomerDetails),
+        customerId
+    ]
+
+    let updateQuery = `
+    update customers
+        set customer_name = ?,
+        customer_phone = ?,
+        customer_email = ?,
+        other_customer_details = ? where customer_id = ?
+    `;
+
+    mysqlConnection.query(updateQuery, fields, (err, rows) =>
+    {
+        if (!err) { res.json( {status: 'customer updated'} ); } else { console.log(err); }
+    });
 });
 
-//update a customer
+/**
+ * DELETE a customer
+ */
+router.delete('/:id', (req, res) => {
+    
+    let {id} = req.params;
+    let deleteQuery = 'delete from customers where customer_id = ?';
 
-router.put('/:id', (req, res) => {
-    const {
-        customerName,
-        customerPhone,
-        customerEmail,
-        otherCustomerDetails
-    } = req.body;
-    const {
-        id
-    } = req.params;
-    const query = `
-     SET @customer_id = ?;
-     SET @customer_name = ?;
-     SET @customer_phone = ?;
-     SET @customer_email = ?;
-     SET @other_customer_details = ?;
-     CALL customerEddit(@customer_id, @customer_name, @customer_phone,@customer_email,@other_customer_details);
-   `;
-    mysqlConnection.query(query, [id, customerName, customerPhone, customerEmail, otherCustomerDetails], (err, rows, fields) => {
-        if (!err) {
-            res.json({
-                status: 'Customer Updated'
-            });
-        } else {
-            console.log(err);
-        }
+    mysqlConnection.query(deleteQuery, [id], (err) =>
+    {
+        if (!err) { res.json( {status: 'customer Deleted'} ); } else { console.log(err); }
     });
 });
 

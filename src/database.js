@@ -1,18 +1,29 @@
 const mysql = require('mysql');
 
-const mysqlConnection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '123456',
-  database: 'bddStore',
-  multipleStatements: true
-});
+/**
+ * Instance a connection
+ */
+const mysqlConnection = mysql.createConnection(
+  {
+    host: 'localhost',
+    user: 'root',
+    password: '12345',
+    database: 'bddStore',
+    multipleStatements: true
+  });
 
-mysqlConnection.connect(function (err) {
-  if (err) {
+/**
+ * Make a connection
+ */
+mysqlConnection.connect(function (err)
+{
+  if (err)
+  {
     console.error(err);
     return;
-  } else {
+  }
+  else
+  {
     console.log('db is connected');
   }
 });
